@@ -7,11 +7,34 @@ reálnou Strava integraci.
 
 **Důležité:** tento kód byl napsán bez přístupu k Xcode/Swift compileru — nebyl
 tedy nikde zkompilován ani odzkoušen. Soubory jsou pečlivě provázané 1:1 podle
-ověřené JS logiky, ale první build v Xcode téměř jistě ukáže pár drobných
-chyb (chybějící import, překlep, typová neshoda). Zkopíruj mi prosím text
-chyby z Xcode a já to doladím.
+ověřené JS logiky, ale build v Xcode může ukázat pár drobných chyb (typová
+neshoda, zastínění proměnné apod.). Zkopíruj mi prosím text chyby z Xcode a
+já to doladím.
 
-## 1. Vytvoření Xcode projektu
+## 1. Vygenerování Xcode projektu (doporučeno — přes XcodeGen)
+
+Repozitář obsahuje `project.yml` — spec pro [XcodeGen](https://github.com/yonaskolb/XcodeGen),
+který z něj jedním příkazem vygeneruje hotový `.xcodeproj` se správně
+nastaveným cílem, deployment targetem i URL schématem pro Strava. Žádné
+ruční vytváření projektu ani tahání souborů v Xcode.
+
+```sh
+brew install xcodegen      # pokud ho ještě nemáš
+cd CrossApp                # kořen tohoto repozitáře
+xcodegen generate
+open CrossFitCoach.xcodeproj
+```
+
+V Xcode pak nahoře vyber jako destinaci nějaký **iPhone/iPad simulátor**
+(ne „My Mac" — appka používá UIKit, který na čistém macOS není) a spusť ⌘R.
+
+Když se v repozitáři něco změní (nové soubory, oprava), stačí `git pull` a
+znovu spustit `xcodegen generate` — `.xcodeproj` se přegeneruje a zůstane v
+synchronizaci.
+
+### Alternativa — ruční vytvoření projektu v Xcode
+
+Pokud nechceš instalovat XcodeGen, jde to i ručně:
 
 1. Otevři Xcode → **File → New → Project… → iOS → App**.
 2. Product Name: `CrossFitCoach`, Interface: **SwiftUI**, Language: **Swift**.
@@ -22,11 +45,12 @@ chyby z Xcode a já to doladím.
 4. Xcode vytvoří vlastní `CrossFitCoachApp.swift` a `ContentView.swift` —
    **oba smaž** (nahrazují je soubory z tohoto repozitáře).
 
-## 2. Import zdrojových souborů
+## 2. Import zdrojových souborů (jen pro ruční variantu)
 
-Přetáhni do Xcode (do skupiny `CrossFitCoach`, se zaškrtnutým „Copy items if
-needed" a cílovým target `CrossFitCoach`) celou strukturu složek z tohoto
-adresáře:
+Pokud jsi použil XcodeGen, tento krok přeskoč — `project.yml` už ukazuje na
+celou složku `CrossFitCoach/`. Při ruční variantě přetáhni do Xcode (do
+skupiny `CrossFitCoach`, se zaškrtnutým „Copy items if needed" a cílovým
+target `CrossFitCoach`) celou strukturu složek z tohoto adresáře:
 
 ```
 CrossFitCoach/
@@ -68,23 +92,23 @@ CrossFitCoach/
 Zachovej tuto adresářovou strukturu i ve Xcode (skupiny podle složek) — žádný
 soubor na to není technicky závislý, ale usnadní to orientaci.
 
-## 3. Nastavení cíle (deployment target)
+## 3. Nastavení cíle (deployment target) a URL schéma pro Strava
 
-- **iOS Deployment Target: 16.0 nebo vyšší** — appka používá `ImageRenderer`
-  (export sdílecí karty) a `NavigationStack`, které jsou dostupné od iOS 16.
-  V Xcode: target `CrossFitCoach` → **General → Minimum Deployments → iOS 16.0**.
+Pokud jsi použil **XcodeGen** (krok 1), obojí je už hotové — `project.yml`
+nastavuje `deploymentTarget: "16.0"` (appka používá `ImageRenderer` a
+`NavigationStack`, dostupné od iOS 16) i `CFBundleURLSchemes: [crossfitcoach]`
+(appka používá `ASWebAuthenticationSession` a po přihlášení na Strava se
+vrací zpět do appky přes `crossfitcoach://`). Nic dalšího tu není potřeba
+nastavovat.
 
-## 4. Custom URL scheme pro Strava OAuth
+Při **ruční** variantě to nastav takto:
 
-Appka používá `ASWebAuthenticationSession` a po přihlášení na Strava se
-vrací zpět do appky přes vlastní URL scheme `crossfitcoach://`.
-
-1. Target `CrossFitCoach` → **Info** tab → **URL Types** → **+**.
-2. **URL Schemes**: `crossfitcoach`
-3. Identifier: `com.yourcompany.crossfitcoach` (libovolné, jen pro přehled).
-
-Bez tohoto kroku se po přihlášení na Strava appka nevrátí zpět (OAuth
-callback se neotevře).
+- **Deployment target**: target `CrossFitCoach` → **General → Minimum
+  Deployments → iOS 16.0**.
+- **URL scheme**: target `CrossFitCoach` → **Info** tab → **URL Types** →
+  **+** → URL Schemes: `crossfitcoach`, Identifier: libovolný (např.
+  `com.pnotny.crossfitcoach`). Bez tohoto kroku se po přihlášení na Strava
+  appka nevrátí zpět (OAuth callback se neotevře).
 
 ## 5. Strava Cloudflare Worker
 

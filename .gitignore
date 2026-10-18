@@ -1,0 +1,6 @@
+.DS_Store
+*.xcodeproj/
+Generated-Info.plist
+xcuserdata/
+.build/
+DerivedData/
