@@ -9,15 +9,15 @@ struct RootTabView: View {
     @State private var selection = 0
 
     private struct Tab {
-        let title: String
+        let titleKey: String
         let icon: String
     }
 
     private static let tabs: [Tab] = [
-        Tab(title: "Dnes", icon: "calendar"),
-        Tab(title: "Historie", icon: "chart.line.uptrend.xyaxis"),
-        Tab(title: "Cviky", icon: "books.vertical"),
-        Tab(title: "Profil", icon: "person.crop.circle"),
+        Tab(titleKey: "tab_today", icon: "calendar"),
+        Tab(titleKey: "tab_history", icon: "chart.line.uptrend.xyaxis"),
+        Tab(titleKey: "tab_library", icon: "books.vertical"),
+        Tab(titleKey: "tab_profile", icon: "person.crop.circle"),
     ]
 
     var body: some View {
@@ -52,11 +52,12 @@ struct RootTabView: View {
                 } label: {
                     VStack(spacing: 3) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 21, weight: selection == idx ? .semibold : .regular))
-                        Text(tab.title)
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 21, weight: selection == idx ? .bold : .regular))
+                        Text(store.t(tab.titleKey))
+                            .font(.system(size: 9.5, weight: .heavy))
+                            .trackedUppercase(0.2)
                     }
-                    .foregroundColor(selection == idx ? .accentColor : .secondary)
+                    .foregroundColor(selection == idx ? DT.accentText : DT.fgFaint)
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
@@ -64,9 +65,10 @@ struct RootTabView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 4)
-        .background(.bar)
+        .background(DT.barBg)
+        .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
-            Divider()
+            Divider().background(DT.line)
         }
     }
 }

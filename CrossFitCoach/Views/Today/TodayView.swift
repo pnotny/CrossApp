@@ -14,9 +14,12 @@ struct TodayView: View {
     @State private var shareItem: ShareImageItem?
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(store.t("today_title"))
+                    .font(DF.display(28))
+                    .foregroundColor(DT.fg)
+
                     WeekStripView()
 
                     if let workout = store.currentWorkout {
@@ -50,26 +53,25 @@ struct TodayView: View {
                                     if store.stravaExportInFlight {
                                         ProgressView().tint(.white)
                                     }
-                                    Text(workout.stravaActivityId != nil ? "Znovu odeslat na Strava" : "Odeslat na Strava")
+                                    Text(workout.stravaActivityId != nil ? store.t("resend_to_strava") : store.t("send_to_strava"))
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 13)
                             }
                             .background(Color(red: 0.98, green: 0.31, blue: 0.09))
                             .foregroundColor(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                             .disabled(store.stravaExportInFlight || !store.currentWorkoutSaved)
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 13, weight: .heavy))
+                            .trackedUppercase(0.2)
                         }
-                    } else {
-                        EmptyStateView(icon: "🏋️", text: "Trénink se připravuje…")
-                    }
+                } else {
+                    EmptyStateView(icon: "🏋️", text: store.t("workout_preparing"))
                 }
-                .padding(16)
             }
-            .navigationTitle("Dnes")
-            .background(Color(.systemGroupedBackground))
+            .padding(16)
         }
+        .background(DT.bg)
         .sheet(item: $selectedExercise) { ex in
             ExerciseDetailView(exercise: ex)
         }
@@ -97,10 +99,10 @@ struct TodayView: View {
     }
 
     private func presentShare(for workout: Workout) {
-        if let image = ShareCardRenderer.render(workout: workout) {
+        if let image = ShareCardRenderer.render(workout: workout, language: store.language) {
             shareItem = ShareImageItem(image: image)
         } else {
-            store.toast("Export karty se nepodařil")
+            store.toast(store.t("card_export_failed"))
         }
     }
 }

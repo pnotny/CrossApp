@@ -22,8 +22,9 @@ struct SwapSheetView: View {
             List {
                 let candidates = store.swapCandidates(blockIndex: context.blockIndex, exerciseIndex: context.exerciseIndex)
                 if candidates.isEmpty {
-                    Text("Žádná vhodná náhrada s aktuálním vybavením.")
-                        .foregroundColor(.secondary)
+                    Text(store.t("no_swap_candidates"))
+                        .foregroundColor(DT.fgMuted)
+                        .listRowBackground(DT.surface)
                 } else {
                     ForEach(candidates) { ex in
                         Button {
@@ -33,24 +34,27 @@ struct SwapSheetView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(ex.name)
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundColor(.primary)
-                                    Text("\(ex.pattern.label) · \(ex.category.label)")
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundColor(DT.fg)
+                                    Text("\(ex.pattern.label(store.language)) · \(ex.category.label(store.language))")
                                         .font(.system(size: 12))
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(DT.fgMuted)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(Color(.tertiaryLabel))
+                                    .foregroundColor(DT.fgFaint)
                             }
                         }
+                        .listRowBackground(DT.surface)
                     }
                 }
             }
-            .navigationTitle("Vyměnit „\(currentName)“")
+            .scrollContentBackground(.hidden)
+            .background(DT.bg)
+            .navigationTitle("\(store.t("swap_title_prefix")) „\(currentName)“")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Zavřít") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button(store.t("close")) { dismiss() } }
             }
         }
     }

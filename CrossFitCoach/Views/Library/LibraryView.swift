@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LibraryView: View {
+    @EnvironmentObject var store: AppStore
     @State private var searchText = ""
     @State private var categoryFilter: MovementCategory?
     @State private var selectedExercise: Exercise?
@@ -13,57 +14,78 @@ struct LibraryView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ChipButton(label: "Vše", isActive: categoryFilter == nil) { categoryFilter = nil }
-                            ForEach(MovementCategory.allCases, id: \.self) { cat in
-                                ChipButton(label: cat.label, isActive: categoryFilter == cat) {
-                                    categoryFilter = categoryFilter == cat ? nil : cat
-                                }
-                            }
-                        }
-                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(store.t("library_title"))
+                    .font(DF.display(28))
+                    .foregroundColor(DT.fg)
 
-                    if filtered.isEmpty {
-                        EmptyStateView(icon: "🔍", text: "Žádné cviky neodpovídají filtru.")
-                    } else {
-                        VStack(spacing: 8) {
-                            ForEach(filtered) { ex in
-                                Button { selectedExercise = ex } label: {
-                                    libraryRow(ex)
-                                }
-                                .buttonStyle(.plain)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ChipButton(label: store.t("all"), isActive: categoryFilter == nil) { categoryFilter = nil }
+                        ForEach(MovementCategory.allCases, id: \.self) { cat in
+                            ChipButton(label: cat.label(store.language), isActive: categoryFilter == cat) {
+                                categoryFilter = categoryFilter == cat ? nil : cat
                             }
                         }
-                        .cardStyle()
                     }
                 }
-                .padding(16)
+
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(DT.fgFaint)
+                    TextField(store.t("search_exercise"), text: $searchText)
+                        .foregroundColor(DT.fg)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                    if !searchText.isEmpty {
+                        Button { searchText = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(DT.fgFaint)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(DT.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).stroke(DT.line, lineWidth: 1))
+
+                if filtered.isEmpty {
+                    EmptyStateView(icon: "🔍", text: store.t("no_exercises_match"))
+                } else {
+                    VStack(spacing: 8) {
+                        ForEach(filtered) { ex in
+                            Button { selectedExercise = ex } label: {
+                                libraryRow(ex)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .cardStyle()
+                }
             }
-            .navigationTitle("Cviky")
-            .background(Color(.systemGroupedBackground))
-            .searchable(text: $searchText, prompt: "Hledat cvik")
-            .sheet(item: $selectedExercise) { ExerciseDetailView(exercise: $0) }
+            .padding(16)
         }
+        .background(DT.bg)
+        .sheet(item: $selectedExercise) { ExerciseDetailView(exercise: $0) }
     }
 
     private func libraryRow(_ ex: Exercise) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(ex.name)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
-                Text("\(ex.pattern.label) · \(ex.category.label)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(DT.fg)
+                Text("\(ex.pattern.label(store.language)) · \(ex.category.label(store.language))")
                     .font(.system(size: 12))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(DT.fgMuted)
             }
             Spacer()
             Image(systemName: "chevron.right")
                 .font(.system(size: 12))
-                .foregroundColor(Color(.tertiaryLabel))
+                .foregroundColor(DT.fgFaint)
         }
         .padding(.vertical, 4)
     }
