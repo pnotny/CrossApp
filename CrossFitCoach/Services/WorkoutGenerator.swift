@@ -26,17 +26,17 @@ enum DateUtils {
 
     /// pondělí = 0 ... neděle = 6
     static func weekdayIndex(_ dateString: String) -> Int {
-        let date = date(from: dateString)
+        let parsedDate = date(from: dateString)
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
-        let jsDay = cal.component(.weekday, from: date) // ne=1..so=7
+        let jsDay = cal.component(.weekday, from: parsedDate) // ne=1..so=7
         let zeroBasedSunday = jsDay - 1 // ne=0..so=6
         return (zeroBasedSunday + 6) % 7
     }
 
     static func dateMinusDays(_ dateString: String, _ n: Int) -> String {
-        let date = date(from: dateString)
-        guard let shifted = Calendar(identifier: .gregorian).date(byAdding: .day, value: -n, to: date) else {
+        let parsedDate = date(from: dateString)
+        guard let shifted = Calendar(identifier: .gregorian).date(byAdding: .day, value: -n, to: parsedDate) else {
             return dateString
         }
         return self.dateString(from: shifted)
